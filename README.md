@@ -1,2 +1,2 @@
-# Plenty-Tracker
-Plenty Notification bot
+# Magic-Tracker
+Magic Whale Bot

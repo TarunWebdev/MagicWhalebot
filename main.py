@@ -9,46 +9,53 @@ last_time = [0]
 
 
 async def sendMessage(message):
-  await discord.utils.get(client.get_all_channels(),name='general').send(message)
+  amount = str(round(message[0],2))
+  wallet = message[1]
+  txid = message[2]
+  msg = str(amount)+ "$Magic transfered from wallet " + wallet + "\n\nArbiscan :" +txid
+  embed=discord.Embed(title="MAGIC WHALE TRANSACTOIN", url=txid, description=msg, color=0x202225)
+  await discord.utils.get(client.get_all_channels(),name='general').send(embed=embed)
 
-async def SayHello(discordnoti, message):
-  await sendMessage(f'Kuchh to chal')
-  discordnoti+=1
-  print(discordnoti)
-  Timer(1.0, await SayHello(discordnoti, message)).start()
 
 async def sectimer(message):
   while True:
     if message.content.startswith('stop'):
       return
-    await sendMessage(getBuy(last_time))
+    result = getBuy(last_time)
+    if len(result)>1:
+      for item in result:
+        await sendMessage(item)
+      sendMessage('done')
     time.sleep(5)
   
-  
 def getBuy(last_time):
-  if len(last_time)>5:
+  if len(last_time)>10:
     t = last_time[-1]
     temp = [t]
     last_time[:]=temp[:]
-  URL1="https://api.arbiscan.io/api?module=account&action=tokentx&contractaddress=0x539bdE0d7Dbd336b79148AA742883198BBF60342&page=1&offset=100&sort=desc&apikey=WMXSRXC98X444KH6PR1ZZNWARHH2RX8SBX"
+  URL1="https://api.arbiscan.io/api?module=account&action=tokentx&contractaddress=0x539bdE0d7Dbd336b79148AA742883198BBF60342&page=1&offset=10&sort=desc&apikey=WMXSRXC98X444KH6PR1ZZNWARHH2RX8SBX"
   r = requests.get(url=URL1)
   data = r.json()
   results = data['result']
-  # print(last_time)
-  # print("++++++++++++++++++++++++")
   temp=[]
+  i=0
   for x in results:
+      item=[]
       if(int(x['value']) > 1 * 10**18)and(int(x['timeStamp'])>last_time[-1]):
-          temp.append(x['value']+x['hash'])
+          val= int(x['value']) / (10**18)
+          sender = x['from']
+          hash = "https://arbiscan.io/tx/"+x['hash']
+          item.append(val)
+          item.append(sender)
+          item.append(hash)
+          temp.append(item)
   last_time.append(int(results[0]['timeStamp']))
   print(last_time)
-  print("----------------")
+  # print("----------------")
   return(temp)
  
-getBuy(last_time)
 
 client = discord.Client()
-
 
 @client.event
 async def on_ready():
@@ -62,17 +69,15 @@ async def on_message(message):
   if message.author == client.user:
     return
 
-  if message.content.startswith('gintu'):
-    await message.channel.send('bhopali')
-
   if message.content.startswith('start'):
-    # await message.channel.send(await SayHello(discordnoti, message))
     await message.channel.send(await sectimer(message))
 
-  if message.content.startswith('difference'):
-    await message.channel.send('The is:'   + str(compareTotalSupply(prevTotalSupply, currentTotalSupply,threshold)))
+
+
+
 
 Alive()
 
 # bot token to be added
- 
+
+client.run("")
